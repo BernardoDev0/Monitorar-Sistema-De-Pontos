@@ -48,7 +48,9 @@ function ensureEmailJsInit() {
   if (EMAILJS_PUBLIC_KEY) {
     try {
       emailjs.init(EMAILJS_PUBLIC_KEY);
-    } catch {}
+    } catch (e) {
+      console.warn('[EmailQueueWorker] Falha ao inicializar EmailJS', (e as any)?.message || String(e));
+    }
   }
 }
 

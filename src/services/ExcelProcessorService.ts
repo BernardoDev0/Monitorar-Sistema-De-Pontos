@@ -97,7 +97,7 @@ export class ExcelProcessorService {
     return base;
   }
 
-  private static async extractDataFromExcel(file: File): Promise<Partial<ProcessedExcelData>> {
+  private static async extractDataFromExcel(file: File, forcedMonth?: number): Promise<Partial<ProcessedExcelData>> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
@@ -204,7 +204,13 @@ export class ExcelProcessorService {
               if (pointsValue > 0 && employeeName) {
                 withPointsRows++;
                 sumPoints += pointsValue;
-                const monthKey = this.getCompanyMonthFromDate(dateValue);
+                let monthKey: string;
+                if (typeof forcedMonth === 'number' && forcedMonth >= 1 && forcedMonth <= 12) {
+                  const y = dateValue.getFullYear();
+                  monthKey = `${String(forcedMonth).padStart(2, '0')}/${y}`;
+                } else {
+                  monthKey = this.getCompanyMonthFromDate(dateValue);
+                }
                 
                 // Adicionar aos totais
                 fileData.employees![employeeName].total += pointsValue;
@@ -493,7 +499,7 @@ export class ExcelProcessorService {
           console.log(`📊 Processando arquivo: ${base}`);
           
           // Com eager: true + query '?url' e import: 'default', modVal já é a URL string
-          let url: string | undefined = modVal as unknown as string;
+          const url: string | undefined = modVal as unknown as string;
 
           if (!url || typeof url !== 'string') {
             console.warn(`❌ URL inválida para ${base}:`, url);
@@ -508,7 +514,10 @@ export class ExcelProcessorService {
           
           const blob = await resp.blob();
           const file = new File([blob], base, { type: blob.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-          const partial = await this.extractDataFromExcel(file);
+          // Extrair mês da pasta: '/registros monitorar/mes N/...'
+          const match = path.match(/\/registros monitorar\/mes\s*(\d{1,2})\b/i);
+          const forcedMonth = match ? parseInt(match[1], 10) : undefined;
+          const partial = await this.extractDataFromExcel(file, forcedMonth);
           
           console.log(`✅ Dados extraídos de ${base}:`, {
             funcionários: Object.keys(partial.employees || {}),

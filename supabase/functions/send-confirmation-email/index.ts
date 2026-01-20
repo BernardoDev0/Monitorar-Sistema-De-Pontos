@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Supabase Edge Function: send-confirmation-email
 // Sistema híbrido: armazena dados para o frontend enviar via EmailJS
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";

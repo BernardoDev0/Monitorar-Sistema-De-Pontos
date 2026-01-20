@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Target, Download, TrendingUp, Users, User } from "lucide-react";
+import { CleanIcon } from "@/components/ui/clean-icon";
 import { useToast } from "@/hooks/use-toast";
 import { ExportService } from "@/services/ExportService";
 import { DataService } from "@/services/DataService";
 import { ExcelProcessorService } from "@/services/ExcelProcessorService";
+import { CalculationsService } from "@/services/CalculationsService";
 import { ChartContainer } from "@/components/Charts/ChartContainer";
 import { WeeklyChart } from "@/components/Charts/WeeklyChart";
 import { MonthlyChart } from "@/components/Charts/MonthlyChart";
@@ -15,6 +16,17 @@ import { ChartTypeSelector } from "@/components/Charts/ChartTypeSelector";
 import { EmployeeControls } from "@/components/Charts/EmployeeControls";
 import { ExecutivePanel } from "@/components/Charts/ExecutivePanel";
 import { useLoading, InlineLoading, CardLoading } from "@/components/ui/loading-state";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+  DialogClose
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EMPLOYEE_NAMES, POINT_VALUE } from "@/lib/constants";
 
 export default function Graficos() {
   const [selectedChart, setSelectedChart] = useState("weekly");
@@ -26,6 +38,11 @@ export default function Graficos() {
   const [weeklyStats, setWeeklyStats] = useState<any>(null);
   const [monthlyStats, setMonthlyStats] = useState<any>(null);
   const { toast } = useToast();
+  const [rangeOpen, setRangeOpen] = useState(false);
+  const [startMonth, setStartMonth] = useState<string>("1");
+  const [startYear, setStartYear] = useState<string>(String(new Date().getFullYear()));
+  const [endMonth, setEndMonth] = useState<string>(String(new Date().getMonth() + 1));
+  const [endYear, setEndYear] = useState<string>(String(new Date().getFullYear()));
 
   // Carregar dados reais do Supabase
   useEffect(() => {
@@ -43,18 +60,46 @@ export default function Graficos() {
 
   const loadRealData = async () => {
     await withLoading(async () => {
+      const range = {
+        start: { month: parseInt(startMonth, 10), year: parseInt(startYear, 10) },
+        end: { month: parseInt(endMonth, 10), year: parseInt(endYear, 10) },
+      };
       const [chartDataResult, monthlyStatsResult, weeklyStatsResult] = await Promise.all([
-        DataService.getChartData(),
+        DataService.getChartData(range),
         DataService.getGeneralStats(), // Mensal
         DataService.getWeeklyStats()   // Semanal
       ]);
       
       setChartData(chartDataResult);
-      setMonthlyStats(monthlyStatsResult);
+      const computeRangeStats = (monthly: any[]) => {
+        if (!monthly || monthly.length === 0) {
+          return { bestPerformer: '-', bestPoints: 0, avgTeam: 0, totalRevenue: 0, totalGoal: 0, progressPercentage: 0 };
+        }
+        const employees = EMPLOYEE_NAMES.filter(n => n !== 'Rodrigo');
+        const totals: Record<string, number> = {};
+        for (const e of employees) totals[e] = 0;
+        for (const row of monthly) {
+          for (const e of employees) {
+            const v = Number(row[e]) || 0;
+            totals[e] += v;
+          }
+        }
+        let bestPerformer = '-';
+        let bestPoints = 0;
+        for (const e of employees) {
+          if (totals[e] > bestPoints) {
+            bestPoints = totals[e];
+            bestPerformer = e;
+          }
+        }
+        const totalPointsForAverage = employees.reduce((sum, e) => sum + totals[e], 0);
+        const avgTeam = employees.length > 0 ? Math.round(totalPointsForAverage / employees.length) : 0;
+        const totalRevenue = totalPointsForAverage * POINT_VALUE;
+        return { bestPerformer, bestPoints, avgTeam, totalRevenue, totalGoal: monthlyStatsResult.totalGoal, progressPercentage: monthlyStatsResult.progressPercentage };
+      };
+      setMonthlyStats(computeRangeStats(chartDataResult.monthlyData));
       setWeeklyStats(weeklyStatsResult);
-
-      // Define stats inicial de acordo com aba padrão (weekly)
-      setStats(weeklyStatsResult);
+      setStats(selectedChart === "weekly" ? weeklyStatsResult : computeRangeStats(chartDataResult.monthlyData));
     });
   };
 
@@ -129,13 +174,13 @@ export default function Graficos() {
   const getChartIcon = () => {
     switch (selectedChart) {
       case "weekly":
-        return <BarChart3 className="h-5 w-5" />;
+        return <span className="text-foreground"><CleanIcon name="charts" size={20} /></span>;
       case "progress":
-        return <TrendingUp className="h-5 w-5" />;
+        return <span className="text-foreground"><CleanIcon name="trendUp" size={20} /></span>;
       case "team":
-        return <Target className="h-5 w-5" />;
+        return <span className="text-foreground"><CleanIcon name="target" size={20} /></span>;
       default:
-        return <BarChart3 className="h-5 w-5" />;
+        return <span className="text-foreground"><CleanIcon name="charts" size={20} /></span>;
     }
   };
 
@@ -155,18 +200,16 @@ export default function Graficos() {
             variant="outline"
             className="gap-2"
           >
-            {loading ? (
-              <InlineLoading text="Exportando..." size="sm" />
-            ) : (
+            {loading ? <InlineLoading text="Exportando..." size="sm" /> : (
               <>
-                <Download className="h-4 w-4" />
+                <span className="text-foreground"><CleanIcon name="download" size={16} /></span>
                 Exportar Excel
               </>
             )}
           </Button>
           
           <Badge variant="outline" className="text-dashboard-info border-dashboard-info/30">
-            <Target className="h-3 w-3 mr-1" />
+            <span className="mr-1 text-dashboard-info"><CleanIcon name="target" size={12} /></span>
             Meta Ativa
           </Badge>
         </div>
@@ -215,7 +258,7 @@ export default function Graficos() {
                       className="h-8 text-xs"
                       size="sm"
                     >
-                      <Users className="h-3 w-3 mr-1" />
+                      <span className="mr-1 text-foreground"><CleanIcon name="users" size={12} /></span>
                       Equipe
                     </Button>
                     <Button
@@ -224,10 +267,104 @@ export default function Graficos() {
                       className="h-8 text-xs"
                       size="sm"
                     >
-                      <User className="h-3 w-3 mr-1" />
+                      <span className="mr-1 text-foreground"><CleanIcon name="user" size={12} /></span>
                       Individual
                     </Button>
                   </div>
+                  {/* Seleção de Período */}
+                  <div className="mt-3">
+                    <Button
+                      variant="dashboard-active"
+                      className="w-full h-9 text-xs justify-center gap-2"
+                      onClick={() => setRangeOpen(true)}
+                    >
+                      <span className="text-foreground"><CleanIcon name="calendar" size={12} /></span>
+                      Selecionar Período
+                    </Button>
+                  </div>
+                  <Dialog open={rangeOpen} onOpenChange={setRangeOpen}>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Selecionar Período para Progresso Mensal</DialogTitle>
+                        <DialogDescription>Escolha mês inicial e final (inclusive)</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">Mês Inicial</div>
+                          <Select value={startMonth} onValueChange={setStartMonth}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 12 }, (_, i) => (
+                                <SelectItem key={`sm-${i+1}`} value={String(i + 1)}>
+                                  {CalculationsService.getMonthNamePT(i + 1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">Ano Inicial</div>
+                          <Select value={startYear} onValueChange={setStartYear}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 6 }, (_, i) => {
+                                const y = new Date().getFullYear() - 2 + i;
+                                return <SelectItem key={`sy-${y}`} value={String(y)}>{y}</SelectItem>;
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">Mês Final</div>
+                          <Select value={endMonth} onValueChange={setEndMonth}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 12 }, (_, i) => (
+                                <SelectItem key={`em-${i+1}`} value={String(i + 1)}>
+                                  {CalculationsService.getMonthNamePT(i + 1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">Ano Final</div>
+                          <Select value={endYear} onValueChange={setEndYear}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 6 }, (_, i) => {
+                                const y = new Date().getFullYear() - 2 + i;
+                                return <SelectItem key={`ey-${y}`} value={String(y)}>{y}</SelectItem>;
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline" className="h-9 text-xs">Cancelar</Button>
+                        </DialogClose>
+                        <Button
+                          variant="dashboard-active"
+                          className="h-9 text-xs"
+                          onClick={() => {
+                            setRangeOpen(false);
+                            loadRealData();
+                          }}
+                        >
+                          Aplicar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
 

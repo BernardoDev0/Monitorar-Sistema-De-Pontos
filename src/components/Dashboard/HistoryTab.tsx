@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, MessageSquare, TrendingUp, Search, Filter } from "lucide-react";
+import { CleanIcon } from "@/components/ui/clean-icon";
 import { EmployeeService, Entry } from "@/services/EmployeeService";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -92,14 +92,14 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
     <Card className="bg-gradient-card border-border/50 shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
+          <span className="text-foreground"><CleanIcon name="calendar" size={20} /></span>
           Histórico de Registros
         </CardTitle>
         
         {/* Filtros */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"><CleanIcon name="search" size={16} /></span>
             <Input
               placeholder="Buscar por observações ou refinaria..."
               value={searchTerm}
@@ -110,7 +110,7 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
           
           <Select value={weekFilter} onValueChange={(value: 'all' | '1' | '2' | '3' | '4' | '5') => setWeekFilter(value)}>
             <SelectTrigger className="w-full sm:w-40">
-              <Filter className="w-4 h-4 mr-2" />
+              <span className="w-4 h-4 mr-2 text-foreground"><CleanIcon name="filter" size={16} /></span>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -130,7 +130,7 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
           <CardLoading />
         ) : filteredEntries.length === 0 ? (
           <div className="text-center py-8">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <span className="mx-auto mb-4 text-muted-foreground"><CleanIcon name="calendar" size={48} /></span>
             <h3 className="text-lg font-medium text-foreground mb-2">
               Nenhum registro encontrado
             </h3>
@@ -159,7 +159,7 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
                     <TableRow key={entry.id} className="hover:bg-muted/30">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground"><CleanIcon name="calendar" size={16} /></span>
                           {formatDate(entry.date)}
                         </div>
                       </TableCell>
@@ -170,7 +170,7 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground"><CleanIcon name="mapPin" size={16} /></span>
                           <span className="font-medium">{entry.refinery}</span>
                         </div>
                       </TableCell>
@@ -179,13 +179,13 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
                           variant={getPointsBadgeVariant(entry.points)}
                           className="flex items-center gap-1"
                         >
-                          <TrendingUp className="w-3 h-3" />
+                          <span className="text-dashboard-info"><CleanIcon name="trendUp" size={12} /></span>
                           {entry.points}
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-xs">
                         <div className="flex items-start gap-2">
-                          <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5" />
+                          <span className="text-muted-foreground mt-0.5"><CleanIcon name="message" size={16} /></span>
                           <span className="text-sm break-words">{entry.observations}</span>
                         </div>
                       </TableCell>

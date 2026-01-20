@@ -129,19 +129,19 @@ export const EMPLOYEE_STATUS_CONFIG = {
     badge: 'Acima da Meta',
     variant: 'default' as const,
     color: 'text-dashboard-success',
-    badgeClass: 'bg-emerald-500/15 text-emerald-100 border border-emerald-500/25'
+    badgeClass: 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-100 dark:border-emerald-500/25'
   },
   'on-track': {
     badge: 'No Caminho',
     variant: 'secondary' as const,
     color: 'text-dashboard-warning',
-    badgeClass: 'bg-yellow-500/15 text-yellow-100 border border-yellow-500/25'
+    badgeClass: 'bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm dark:bg-yellow-500/15 dark:text-yellow-100 dark:border-yellow-500/25'
   },
   'below': {
     badge: 'Abaixo da Meta',
     variant: 'destructive' as const,
     color: 'text-dashboard-danger',
-    badgeClass: 'bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-100'
+    badgeClass: 'bg-red-100 text-red-700 border border-red-300 shadow-sm dark:bg-red-500/20 dark:text-red-100 dark:border-red-500/30'
   }
 } as const;
 

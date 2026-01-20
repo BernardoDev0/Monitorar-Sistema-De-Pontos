@@ -11,19 +11,7 @@ import { format, parseISO, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { CalculationsService } from "@/services/CalculationsService";
-import { 
-   Search, 
-   Filter, 
-   Download, 
-   Trash2, 
-   Edit, 
-   Calendar,
-   Clock,
-   User,
-   Building2,
-   Hash,
-   MessageSquare
-} from "lucide-react";
+import { CleanIcon } from "@/components/ui/clean-icon";
 import { useLoading, InlineLoading, TableLoading } from "@/components/ui/loading-state";
 import { SelectField, InputField } from "@/components/ui/form-field";
 import { 
@@ -303,7 +291,7 @@ export default function Registros() {
           <Card className="bg-gradient-card shadow-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Hash className="h-4 w-4 text-dashboard-primary" />
+                <span className="text-dashboard-primary"><CleanIcon name="hash" size={16} /></span>
                 <span className="text-sm font-medium text-foreground">Total de Registros</span>
               </div>
               <p className="text-2xl font-bold text-dashboard-primary mt-2">{filteredRecords.length}</p>
@@ -312,7 +300,7 @@ export default function Registros() {
           <Card className="bg-gradient-card shadow-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-dashboard-success" />
+                <span className="text-dashboard-success"><CleanIcon name="user" size={16} /></span>
                 <span className="text-sm font-medium text-foreground">Meta Concluída</span>
               </div>
               <p className="text-2xl font-bold text-dashboard-success mt-2">{completedRecords}</p>
@@ -321,7 +309,7 @@ export default function Registros() {
           <Card className="bg-gradient-card shadow-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-dashboard-info" />
+                <span className="text-dashboard-info"><CleanIcon name="buildings" size={16} /></span>
                 <span className="text-sm font-medium text-foreground">Total de Pontos</span>
               </div>
               <p className="text-2xl font-bold text-dashboard-info mt-2">{totalPoints.toLocaleString()}</p>
@@ -330,7 +318,7 @@ export default function Registros() {
           <Card className="bg-gradient-card shadow-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-dashboard-warning" />
+                <span className="text-dashboard-warning"><CleanIcon name="clock" size={16} /></span>
                 <span className="text-sm font-medium text-foreground">Média Diária</span>
               </div>
               <p className="text-2xl font-bold text-dashboard-warning mt-2">{Math.round(totalPoints / 7)}</p>
@@ -342,7 +330,7 @@ export default function Registros() {
       <Card className="bg-gradient-card shadow-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
-            <Filter className="h-5 w-5" />
+            <span className="text-foreground"><CleanIcon name="filter" size={20} /></span>
             Filtros
           </CardTitle>
         </CardHeader>
@@ -378,7 +366,7 @@ export default function Registros() {
                 placeholder="Buscar registros..."
                 className="pl-10"
               />
-              <Search className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
+              <span className="absolute left-3 top-9 text-muted-foreground"><CleanIcon name="search" size={16} /></span>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Ações:</label>
@@ -390,7 +378,7 @@ export default function Registros() {
                   onClick={exportToExcel}
                   disabled={filteredRecords.length === 0}
                 >
-                  <Download className="h-4 w-4 mr-1" />
+                  <span className="mr-1 text-foreground"><CleanIcon name="download" size={16} /></span>
                   Exportar
                 </Button>
                 <AlertDialog>
@@ -401,7 +389,7 @@ export default function Registros() {
                       className="whitespace-nowrap text-red-300 border-red-500/30 hover:text-red-100 hover:bg-red-500/20 hover:border-red-500/50"
                       disabled={records.length === 0}
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
+                      <span className="mr-1 text-foreground"><CleanIcon name="trash" size={16} /></span>
                       Excluir Todos
                     </Button>
                   </AlertDialogTrigger>
@@ -428,7 +416,7 @@ export default function Registros() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-foreground">
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <span className="text-foreground"><CleanIcon name="calendar" size={20} /></span>
               Seus Registros
             </div>
             <Badge variant="outline" className="text-dashboard-info border-dashboard-info/30">
@@ -460,7 +448,7 @@ export default function Registros() {
               ) : filteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <span className="mx-auto mb-2 opacity-50 text-muted-foreground"><CleanIcon name="message" size={32} /></span>
                     Nenhum registro encontrado.
                   </TableCell>
                 </TableRow>
@@ -486,7 +474,7 @@ export default function Registros() {
                           onClick={() => openEdit(record)}
                           className="h-8 w-8 p-0 text-dashboard-info hover:text-dashboard-info hover:bg-dashboard-info/20"
                         >
-                          <Edit className="h-3 w-3" />
+                          <span className="text-foreground"><CleanIcon name="edit" size={12} /></span>
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -495,7 +483,7 @@ export default function Registros() {
                               size="sm"
                               className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <span className="text-foreground"><CleanIcon name="trash" size={12} /></span>
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

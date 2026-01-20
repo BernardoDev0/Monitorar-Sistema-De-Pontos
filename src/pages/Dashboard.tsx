@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, TrendingUp, Target, Calendar } from "lucide-react";
+import { CleanIcon } from "@/components/ui/clean-icon";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeService, Employee } from "@/services/EmployeeService";
 import { CalculationsService } from "@/services/CalculationsService";
@@ -207,7 +207,7 @@ const Dashboard = () => {
                 onClick={handleLogout}
                 className="border-border hover:bg-destructive hover:text-destructive-foreground"
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <span className="mr-2 text-foreground"><CleanIcon name="logout" size={16} /></span>
                 Sair
               </Button>
             </div>
@@ -223,7 +223,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pontos Hoje
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-dashboard-primary" />
+              <span className="text-dashboard-primary"><CleanIcon name="trendUp" size={16} /></span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-dashboard-primary mb-1">
@@ -244,7 +244,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pontos Semana {selectedWeek}
               </CardTitle>
-              <Target className="h-4 w-4 text-dashboard-secondary" />
+              <span className="text-dashboard-secondary"><CleanIcon name="target" size={16} /></span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-dashboard-secondary mb-1">
@@ -265,7 +265,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pontos Mensais
               </CardTitle>
-              <Calendar className="h-4 w-4 text-dashboard-success" />
+              <span className="text-dashboard-success"><CleanIcon name="calendar" size={16} /></span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-dashboard-success mb-1">

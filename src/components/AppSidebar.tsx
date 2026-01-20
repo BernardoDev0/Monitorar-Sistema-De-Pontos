@@ -1,5 +1,6 @@
-import { Users, BarChart3, Table, TrendingUp, LogOut, UserCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 import {
   Sidebar,
@@ -15,11 +16,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { CleanIcon } from "@/components/ui/clean-icon";
 
 const items = [
-  { title: "Equipe", url: "/admin", icon: Users },
-  { title: "Gráficos", url: "/admin/graficos", icon: BarChart3 },
-  { title: "Registros", url: "/admin/registros", icon: Table },
+  { title: "Equipe", url: "/admin", icon: "users" as const },
+  { title: "Gráficos", url: "/admin/graficos", icon: "charts" as const },
+  { title: "Registros", url: "/admin/registros", icon: "table" as const },
   
 ];
 
@@ -28,6 +31,23 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const { toast } = useToast();
+  const { setTheme } = useTheme();
+  const [themeChoice, setThemeChoice] = useState<'light' | 'dark-blue' | 'dark-gray'>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('theme-choice') as any : null;
+    return saved === 'dark-gray' || saved === 'light' ? saved : 'dark-blue';
+  });
+  useEffect(() => {
+    const root = document.documentElement;
+    if (themeChoice === 'light') {
+      setTheme('light');
+      root.classList.remove('theme-blue', 'theme-gray');
+    } else {
+      setTheme('dark');
+      root.classList.remove('theme-blue', 'theme-gray');
+      root.classList.add(themeChoice === 'dark-blue' ? 'theme-blue' : 'theme-gray');
+    }
+    localStorage.setItem('theme-choice', themeChoice);
+  }, [themeChoice, setTheme]);
 
   const isActive = (path: string) => currentPath === path;
 
@@ -35,7 +55,9 @@ export function AppSidebar() {
     try {
       localStorage.removeItem("currentUser");
       toast({ title: "Logout realizado", description: "Você saiu da conta." });
-    } catch {}
+    } catch (error) {
+      console.warn('Erro ao realizar logout', error);
+    }
     navigate("/login");
   };
 
@@ -45,16 +67,13 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className="p-2 border-b border-border">
-        <div className="flex items-center gap-1 sidebar-menu-optimized">
-          <div className="p-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 smooth-transition sidebar-menu-optimized">
-            <TrendingUp className="h-5 w-5 text-white" />
-          </div>
-          <div className="group-data-[collapsible=icon]:hidden">
-            <h2 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Dashboard 
-            </h2>
-            <p className="text-xs text-muted-foreground">Sistema de Monitoramento</p>
-          </div>
+        <div className="h-12 flex items-center gap-2 px-2 sidebar-menu-optimized">
+          <span className="text-foreground relative top-[2px]">
+            <CleanIcon name="dashboard" size={22} />
+          </span>
+          <span className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden">
+            Dashboard
+          </span>
         </div>
       </SidebarHeader>
 
@@ -79,7 +98,9 @@ export function AppSidebar() {
                         smooth-transition h-12 sidebar-menu-optimized
                       `}
                     >
-                      <Icon className="h-5 w-5" />
+                      <span className="text-foreground">
+                        <CleanIcon name={item.icon} size={18} />
+                      </span>
                       <span className="font-medium">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -92,14 +113,19 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-border p-3 group-data-[collapsible=icon]:px-1">
         <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center sidebar-menu-optimized">
-          <div className="flex items-center gap-2 overflow-hidden sidebar-menu-optimized">
-            <div className="p-1.5 rounded-lg bg-white/10 border border-white/20 sidebar-menu-optimized">
-              <UserCircle className="h-5 w-5 text-white" />
-            </div>
-            <div className="group-data-[collapsible=icon]:hidden">
-              <p className="text-sm font-medium leading-tight">CEO</p>
-              <p className="text-xs text-muted-foreground">Administrador</p>
-            </div>
+          {/* Theme Toggle */}
+          <div className="group-data-[collapsible=icon]:hidden">
+            <ToggleGroup type="single" value={themeChoice} onValueChange={(v) => v && setThemeChoice(v as any)} size="sm">
+              <ToggleGroupItem value="dark-blue" aria-label="Azul Escuro" title="Azul Escuro" className="text-foreground data-[state=on]:bg-transparent data-[state=on]:text-foreground">
+                <CleanIcon name="moon" size={16} />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="dark-gray" aria-label="Cinza Escuro" title="Cinza Escuro" className="text-foreground data-[state=on]:bg-transparent data-[state=on]:text-foreground">
+                <CleanIcon name="system" size={16} />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="light" aria-label="Tema Claro" title="Tema Claro" className="text-foreground data-[state=on]:bg-transparent data-[state=on]:text-foreground">
+                <CleanIcon name="sun" size={16} />
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           <Button
@@ -109,7 +135,7 @@ export function AppSidebar() {
             className="group-data-[collapsible=icon]:hidden text-muted-foreground hover:text-red-500"
             title="Sair"
           >
-            <LogOut className="h-4 w-4 mr-1" />
+            <span className="mr-1"><CleanIcon name="logout" size={16} /></span>
             Sair
           </Button>
         </div>

@@ -153,29 +153,46 @@ export class DataService {
    * Gera dados para gráficos mensais
    * IMPORTANTE: Usa o período customizado da empresa (26→25)
    */
-  static async getMonthlyChartData(): Promise<any[]> {
+  static async getMonthlyChartData(range?: { start: { month: number; year: number }, end: { month: number; year: number } }): Promise<any[]> {
     // Tentar carregar dados locais da pasta 'registros monitorar'
     const localData = await ExcelProcessorService.loadLocalMonthlyChartData();
     
     if (localData && localData.length > 0) {
       console.log('📂 Carregando dados mensais dos arquivos locais de Excel:', localData);
 
-      // Construir sempre os últimos 7 meses do ciclo da empresa (26→25)
-      const currentMonthDates = CalculationsService.getMonthCycleDates();
-      const currentCycleEnd = new Date(currentMonthDates.end);
-      const currentCompanyMonth = currentCycleEnd.getMonth(); // 0-based
-      const currentYear = currentCycleEnd.getFullYear();
+      // Construir intervalo desejado ou último 7 por padrão
+      const lastOfData = localData[localData.length - 1];
+      const refMonth = typeof lastOfData?.year === 'number' ? (CalculationsService.MONTH_NAMES_PT.indexOf(lastOfData.name) + 1) : (new Date().getMonth() + 1);
+      const refYear = typeof lastOfData?.year === 'number' ? lastOfData.year : new Date().getFullYear();
 
       type MonthToShow = { monthIndex: number; yearForMonth: number; name: string; key: string; start: string; end: string };
       const monthsToShow: MonthToShow[] = [];
-      for (let i = 6; i >= 0; i--) {
-        let monthIndex = currentCompanyMonth - i; // 0-based
-        let yearForMonth = currentYear;
-        if (monthIndex < 0) { monthIndex += 12; yearForMonth -= 1; }
-        const name = CalculationsService.getMonthNamePT(monthIndex + 1);
-        const monthDates = CalculationsService.getMonthCycleDates(monthIndex + 1, yearForMonth);
-        const key = `${(monthIndex + 1).toString().padStart(2, '0')}/${yearForMonth}`;
-        monthsToShow.push({ monthIndex, yearForMonth, name, key, start: monthDates.start, end: monthDates.end });
+      
+      const pushMonth = (m1to12: number, y: number) => {
+        const name = CalculationsService.getMonthNamePT(m1to12);
+        const monthDates = CalculationsService.getMonthCycleDates(m1to12, y);
+        const key = `${m1to12.toString().padStart(2, '0')}/${y}`;
+        monthsToShow.push({ monthIndex: m1to12 - 1, yearForMonth: y, name, key, start: monthDates.start, end: monthDates.end });
+      };
+      
+      if (range) {
+        let m = range.start.month;
+        let y = range.start.year;
+        while (true) {
+          pushMonth(m, y);
+          if (m === range.end.month && y === range.end.year) break;
+          m += 1;
+          if (m > 12) { m = 1; y += 1; }
+          // segurança para evitar loop infinito
+          if (monthsToShow.length > 120) break;
+        }
+      } else {
+        for (let i = 6; i >= 0; i--) {
+          let monthIndex = (refMonth - 1) - i; // 0-based
+          let yearForMonth = refYear;
+          if (monthIndex < 0) { monthIndex += 12; yearForMonth -= 1; }
+          pushMonth(monthIndex + 1, yearForMonth);
+        }
       }
 
       // Índice por chave estável MM/YYYY gerada pelo ExcelProcessorService
@@ -282,10 +299,10 @@ export class DataService {
   /**
    * Gera todos os dados de gráficos de uma vez
    */
-  static async getChartData(): Promise<ChartData> {
+  static async getChartData(range?: { start: { month: number; year: number }, end: { month: number; year: number } }): Promise<ChartData> {
     const [weeklyData, monthlyData, teamPerformance] = await Promise.all([
       this.getWeeklyChartData(),
-      this.getMonthlyChartData(),
+      this.getMonthlyChartData(range),
       this.getTeamPerformanceData()
     ]);
 
