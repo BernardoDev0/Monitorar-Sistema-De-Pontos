@@ -1,4 +1,5 @@
 import { formatDateISO, formatDateBR, generateMonthKey, getLastDayOfMonth } from '@/lib/date-utils';
+import { getFixedWeekFromDate, getFixedWeekDateRangesISO } from '@/lib/week-rules';
 
 export interface WeekDates {
   start: string;
@@ -42,31 +43,17 @@ export class CalculationsService {
 
     const today = new Date();
     const saoPauloDate = new Date(today.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-    const currentMonth = saoPauloDate.getMonth() + 1;
-    const currentYear = saoPauloDate.getFullYear();
-    const monthStart = new Date(currentYear, currentMonth - 1, 1);
-    const monthEnd = getLastDayOfMonth(monthStart);
-    const lastDay = monthEnd.getDate();
+    const ranges = getFixedWeekDateRangesISO(weekNum, saoPauloDate);
+    if (!ranges || ranges.length === 0) throw new Error('Semana inválida');
 
-    let startDay = (weekNum - 1) * 7 + 1;
-    if (startDay > lastDay) startDay = lastDay;
-    const endDay = Math.min(startDay + 6, lastDay);
-
-    const weekStartDate = new Date(currentYear, currentMonth - 1, startDay);
-    const weekEndDate = new Date(currentYear, currentMonth - 1, endDay);
-
-    return {
-      start: formatDateISO(weekStartDate),
-      end: formatDateISO(weekEndDate)
-    };
+    const primary = ranges[0];
+    return { start: primary.start, end: primary.end };
   }
 
-  static getCurrentWeek(): number {
+  static getCurrentWeek(): number | null {
     const today = new Date();
     const saoPauloDate = new Date(today.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-    const currentDay = saoPauloDate.getDate();
-    const weekIndex = Math.floor((currentDay - 1) / 7) + 1;
-    return Math.min(Math.max(weekIndex, 1), 5);
+    return getFixedWeekFromDate(saoPauloDate);
   }
 
   static getMonthCycleDates(month?: number, year?: number): MonthCycleDates {
@@ -85,16 +72,25 @@ export class CalculationsService {
     };
   }
 
-  static getWeekFromDate(dateStr: string): number {
+  static getWeekFromDate(dateStr: string): number | null {
     const date = new Date(dateStr);
-    const day = date.getDate();
-    const weekIndex = Math.floor((day - 1) / 7) + 1;
-    return Math.min(Math.max(weekIndex, 1), 5);
+    return getFixedWeekFromDate(date);
   }
 
-  // Semanas disponíveis (sempre 1-5)
+  // Semanas disponíveis
   static getAvailableWeeks(): string[] {
     return ['1', '2', '3', '4', '5'];
+  }
+
+  static getWeekDateRanges(weekStr: string): { start: string; end: string }[] {
+    const weekNum = parseInt(weekStr);
+    if (weekNum < 1 || weekNum > 5) {
+      throw new Error('Semana deve estar entre 1 e 5');
+    }
+    const today = new Date();
+    const saoPauloDate = new Date(today.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
+    const ranges = getFixedWeekDateRangesISO(weekNum, saoPauloDate);
+    return ranges;
   }
 
   // Calcular meta diária baseada no funcionário

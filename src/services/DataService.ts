@@ -127,19 +127,16 @@ export class DataService {
     if (!employees.length) return [];
 
     const weeklyData = [];
-    const cycleStart = CalculationsService.getCurrentCycleStart();
-    
-    // Gerar 5 semanas do ciclo
-    for (let week = 1; week <= 5; week++) {
-      const weekDates = CalculationsService.getWeekDates(week.toString());
-      const weekData = { name: `Semana ${week}` };
+    const weeks = CalculationsService.getAvailableWeeks();
+    for (const week of weeks) {
+      const ranges = CalculationsService.getWeekDateRanges(week);
+      const weekData: any = { name: `Semana ${week}` };
       
       for (const employee of employees) {
-        const points = await this.getEmployeePoints(
-          employee.id, 
-          weekDates.start, 
-          weekDates.end
-        );
+        let points = 0;
+        for (const r of ranges) {
+          points += await this.getEmployeePoints(employee.id, r.start, r.end);
+        }
         weekData[employee.real_name] = points;
       }
       
@@ -411,7 +408,7 @@ export class DataService {
 
     // CORREÇÃO: Calcular apenas a semana atual, não o mês inteiro
     const currentWeek = CalculationsService.getCurrentWeek();
-    const weekDates = CalculationsService.getWeekDates(currentWeek.toString());
+    const ranges = CalculationsService.getWeekDateRanges(currentWeek.toString());
 
     let bestPerformer = '';
     let bestPoints = 0;
@@ -424,7 +421,10 @@ export class DataService {
       if (employee.real_name === 'Rodrigo') {
         continue; // excluir freelancer dos totais semanais/mensais
       }
-      const pts = await this.getEmployeePoints(employee.id, weekDates.start, weekDates.end);
+      let pts = 0;
+      for (const r of ranges) {
+        pts += await this.getEmployeePoints(employee.id, r.start, r.end);
+      }
       totalPoints += pts;
 
       if (pts > bestPoints) {
@@ -455,7 +455,7 @@ export class DataService {
 
     const totalRevenue = totalPoints * POINT_VALUE; // faturamento da semana atual
 
-    const weekRange = `${weekDates.start} ~ ${weekDates.end}`;
+    const weekRange = ranges.map(r => `${r.start} ~ ${r.end}`).join(' | ');
 
     return {
       bestPerformer,

@@ -31,19 +31,22 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
     await withLoading(async () => {
       const currentPage = reset ? 0 : page;
       
-      let dateFilter: { start?: string; end?: string } | undefined;
-      // Selecione semana específica (1..5) usando lógica 26→25
-      if (weekFilter !== 'all') {
-        const { start, end } = CalculationsService.getWeekDates(weekFilter);
-        dateFilter = { start, end };
+      let newEntries: Entry[] = [];
+      if (weekFilter === 'all') {
+        newEntries = await EmployeeService.getEmployeeEntries(
+          employeeId,
+          ITEMS_PER_PAGE,
+          currentPage * ITEMS_PER_PAGE,
+          undefined
+        );
+      } else {
+        const ranges = CalculationsService.getWeekDateRanges(weekFilter);
+        const promises = ranges.map(r => 
+          EmployeeService.getEmployeeEntries(employeeId, ITEMS_PER_PAGE, 0, { start: r.start, end: r.end })
+        );
+        const results = await Promise.all(promises);
+        newEntries = results.flat().sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, ITEMS_PER_PAGE);
       }
-      
-      const newEntries = await EmployeeService.getEmployeeEntries(
-        employeeId,
-        ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE,
-        dateFilter
-      );
       
       if (reset) {
         setEntries(newEntries);
@@ -120,6 +123,7 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
               <SelectItem value="3">Semana 3</SelectItem>
               <SelectItem value="4">Semana 4</SelectItem>
               <SelectItem value="5">Semana 5</SelectItem>
+              
             </SelectContent>
           </Select>
         </div>

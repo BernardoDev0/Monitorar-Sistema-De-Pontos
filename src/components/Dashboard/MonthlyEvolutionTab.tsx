@@ -39,15 +39,14 @@ export const MonthlyEvolutionTab = ({ employeeId, monthlyGoal, weeklyGoal }: Mon
       
       setEntries(monthEntries);
       
-      // Calcular dados por semana usando o sistema 26→25
-      const weeklyGoalValue = typeof weeklyGoal === 'number' ? weeklyGoal : (monthlyGoal / 5); // Sempre 5 semanas
+      const weeklyGoalValue = typeof weeklyGoal === 'number' ? weeklyGoal : (monthlyGoal / 4);
       
       const chartData: WeeklyData[] = [];
-      
-      // Iterar pelas 5 semanas do sistema
-      for (let weekNum = 1; weekNum <= 5; weekNum++) {
+      const availableWeeks = CalculationsService.getAvailableWeeks();
+      for (const weekStr of availableWeeks) {
+        const weekNum = parseInt(weekStr);
         try {
-          const weekDates = CalculationsService.getWeekDates(weekNum.toString());
+          const weekDates = CalculationsService.getWeekDates(weekStr);
           const weekEntries = monthEntries.filter(entry => {
             const entryDate = entry.date.split('T')[0]; // Pegar apenas a data
             return entryDate >= weekDates.start && entryDate <= weekDates.end;

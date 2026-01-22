@@ -48,7 +48,7 @@ interface EntryRecord {
 
 export default function Registros() {
   const { toast } = useToast();
-  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek()));
+  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek() ?? '1'));
   const [selectedEmployee, setSelectedEmployee] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [records, setRecords] = useState<EntryRecord[]>([]);
@@ -182,10 +182,10 @@ export default function Registros() {
     const matchesEmployee = selectedEmployee === "todos" || record.employee === selectedEmployee;
     let matchesWeek = true;
     if (selectedWeek !== "todas") {
-      const weekDates = CalculationsService.getWeekDates(selectedWeek);
+      const ranges = CalculationsService.getWeekDateRanges(selectedWeek);
       const [day, month, year] = record.date.split('/');
       const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      matchesWeek = isoDate >= weekDates.start && isoDate <= weekDates.end;
+      matchesWeek = ranges.some(r => isoDate >= r.start && isoDate <= r.end);
     }
     return matchesSearch && matchesEmployee && matchesWeek;
   });

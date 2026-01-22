@@ -28,7 +28,7 @@ interface DashboardMetrics {
 
 const Dashboard = () => {
   const [currentUser, setCurrentUser] = useState<Employee | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek()));
+  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek() ?? '1'));
   const [pontos, setPontos] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [selectedRefinery, setSelectedRefinery] = useState("");
@@ -77,8 +77,11 @@ const Dashboard = () => {
       const todayPoints = await EmployeeService.getTodayPoints(employeeId);
       
       // Calcular pontos da semana selecionada
-      const weekDates = CalculationsService.getWeekDates(selectedWeek);
-      const weekPoints = await EmployeeService.getWeekPoints(employeeId, weekDates);
+      const ranges = CalculationsService.getWeekDateRanges(selectedWeek);
+      let weekPoints = 0;
+      for (const r of ranges) {
+        weekPoints += await EmployeeService.getWeekPoints(employeeId, r);
+      }
 
       // Calcular pontos mensais
       const monthDates = CalculationsService.getMonthCycleDates();
@@ -198,6 +201,7 @@ const Dashboard = () => {
                     <SelectItem value="3">Semana 3</SelectItem>
                     <SelectItem value="4">Semana 4</SelectItem>
                     <SelectItem value="5">Semana 5</SelectItem>
+                    
                   </SelectContent>
                 </Select>
               </div>

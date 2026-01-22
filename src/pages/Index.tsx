@@ -18,7 +18,7 @@ interface EmployeeMetrics extends Employee {
 }
 
 const Index = () => {
-  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek()));
+  const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek() ?? '1'));
   const [employees, setEmployees] = useState<EmployeeMetrics[]>([]);
   const { loading, withLoading } = useLoading(true);
   const navigate = useNavigate();
@@ -104,7 +104,7 @@ const Index = () => {
   
   // CORREÇÃO: Progresso da equipe deve ser baseado nos pontos semanais, não mensais
   // pois estamos mostrando "Progresso da Equipe Esta Semana"
-  const teamProgress = (totalWeeklyPoints / (totalMonthlyGoal / 5)) * 100; // Meta semanal = Meta mensal / 5
+  const teamProgress = (totalWeeklyPoints / (totalMonthlyGoal / 4)) * 100;
 
   if (loading) {
     return (

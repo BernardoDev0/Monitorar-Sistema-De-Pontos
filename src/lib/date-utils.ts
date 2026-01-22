@@ -197,6 +197,49 @@ export function getLastDayOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0)
 }
 
+export function getCustomWeek(date: Date): number | null {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  const day = date.getDate() // 1-based position in the month
+
+  const lastDay = getLastDayOfMonth(new Date(year, month, 1)).getDate()
+  const baseDaysPerWeek = Math.floor(lastDay / 5)
+  const extraDays = lastDay % 5
+
+  let accumulated = 0
+  for (let i = 1; i <= 5; i++) {
+    const weekDays = baseDaysPerWeek + (i <= extraDays ? 1 : 0)
+    accumulated += weekDays
+    if (day <= accumulated) {
+      return i
+    }
+  }
+  return 5
+}
+
+export function getCustomWeekRange(weekNumber: number, referenceDate: Date): { start: Date; end: Date } | null {
+  if (weekNumber < 1 || weekNumber > 5) return null
+  const year = referenceDate.getFullYear()
+  const month = referenceDate.getMonth()
+  const lastDay = getLastDayOfMonth(new Date(year, month, 1)).getDate()
+
+  const baseDaysPerWeek = Math.floor(lastDay / 5)
+  const extraDays = lastDay % 5
+
+  // Calculate start day by summing previous week sizes
+  let startDay = 1
+  for (let i = 1; i < weekNumber; i++) {
+    startDay += baseDaysPerWeek + (i <= extraDays ? 1 : 0)
+  }
+
+  const weekDays = baseDaysPerWeek + (weekNumber <= extraDays ? 1 : 0)
+  const endDay = Math.min(startDay + weekDays - 1, lastDay)
+
+  const start = new Date(year, month, startDay)
+  const end = new Date(year, month, endDay)
+  return { start, end }
+}
+
 /**
  * Calcula diferença em dias entre duas datas
  */
