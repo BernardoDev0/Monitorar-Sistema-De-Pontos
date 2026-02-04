@@ -365,7 +365,7 @@ export class ExcelProcessorService {
         return `${m.toString().padStart(2, '0')}/${y}`;
       }
 
-      // Centralizar regra no CalculationsService (26→25)
+      // Centralizar regra no CalculationsService (01→30/31)
       return CalculationsService.getCompanyMonthKeyFromDate(date);
     } catch (error) {
       return 'Sem Data';
@@ -465,7 +465,7 @@ export class ExcelProcessorService {
   static async loadLocalMonthlyChartData(): Promise<any[] | null> {
     try {
       console.log('🔍 Iniciando carregamento dos arquivos Excel locais...');
-      console.log('🧮 Modo de agrupamento:', this.USE_COMPANY_CYCLE_FOR_LOCAL ? 'Ciclo 26→25' : 'Mês calendário');
+      console.log('🧮 Modo de agrupamento:', this.USE_COMPANY_CYCLE_FOR_LOCAL ? 'Ciclo 01→30/31' : 'Mês calendário');
       
       // Carregar URLs dos arquivos .xlsx/.xls dentro da pasta com espaço no nome
       const modules = (import.meta as any).glob('/registros monitorar/**/*.{xlsx,xls}', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
@@ -571,7 +571,7 @@ export class ExcelProcessorService {
       return { inserted: 0, skipped_duplicates: 0, files: [] as any[] };
     }
 
-    // 2) datas do mês atual da empresa (26→25)
+    // 2) datas do mês atual da empresa (01→30/31)
     const { start, end } = CalculationsService.getMonthCycleDates();
     const endExclusiveDate = new Date(`${end}T00:00:00Z`);
     endExclusiveDate.setUTCDate(endExclusiveDate.getUTCDate() + 1);

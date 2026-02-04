@@ -40,12 +40,28 @@ export const HistoryTab = ({ employeeId }: HistoryTabProps) => {
           undefined
         );
       } else {
-        const ranges = CalculationsService.getWeekDateRanges(weekFilter);
-        const promises = ranges.map(r => 
-          EmployeeService.getEmployeeEntries(employeeId, ITEMS_PER_PAGE, 0, { start: r.start, end: r.end })
-        );
-        const results = await Promise.all(promises);
-        newEntries = results.flat().sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, ITEMS_PER_PAGE);
+        const targetWeek = weekFilter;
+        const matches: Entry[] = [];
+        let offset = 0;
+        while (matches.length < ITEMS_PER_PAGE) {
+          const batch = await EmployeeService.getEmployeeEntries(
+            employeeId,
+            ITEMS_PER_PAGE,
+            offset,
+            undefined
+          );
+          if (!batch.length) break;
+          for (const entry of batch) {
+            const weekNumber = CalculationsService.getWeekFromDate(entry.date);
+            if (String(weekNumber ?? '') === targetWeek) {
+              matches.push(entry);
+            }
+            if (matches.length >= ITEMS_PER_PAGE) break;
+          }
+          offset += ITEMS_PER_PAGE;
+          if (batch.length < ITEMS_PER_PAGE) break;
+        }
+        newEntries = matches.sort((a, b) => (a.date < b.date ? 1 : -1));
       }
       
       if (reset) {

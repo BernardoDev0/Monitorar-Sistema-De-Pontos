@@ -171,7 +171,7 @@ export default function ExcelDashboard() {
     animationFrameRef.current = requestAnimationFrame(animate);
   }, []);
 
-  // Obter mês a partir de uma data (considerando mês do dia 26 ao 25)
+  // Obter mês a partir de uma data (considerando mês do dia 01 ao 30/31)
   const getCompanyMonthFromDate = (dateString: string | Date): string | null => {
     try {
       console.log('🔍 === DEBUG: getCompanyMonthFromDate ===');
@@ -193,7 +193,7 @@ export default function ExcelDashboard() {
         return null;
       }
       
-      // Usar lógica centralizada: chave MM/YYYY do mês da empresa (26→25)
+      // Usar lógica centralizada: chave MM/YYYY do mês da empresa (01→30/31)
       const key = CalculationsService.getCompanyMonthKeyFromDate(date);
       const [mm, yyyy] = key.split('/');
       const monthName = CalculationsService.getMonthNamePT(Number(mm));

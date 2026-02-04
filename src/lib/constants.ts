@@ -101,8 +101,8 @@ export const POINT_VALUE = 3.25;
  * Dias do ciclo mensal da empresa
  */
 export const CYCLE_DAYS = {
-  START: 26,
-  END: 25
+  START: 1,
+  END: 31
 } as const;
 
 /**

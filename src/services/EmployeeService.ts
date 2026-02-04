@@ -154,7 +154,7 @@ export class EmployeeService {
     }
   }
 
-  // Calcular pontos da semana (baseado na lógica 26→25)
+  // Calcular pontos da semana (baseado na lógica 01→30/31)
   static async getWeekPoints(employeeId: number, weekDates: { start: string; end: string }): Promise<number> {
     try {
       // FORÇAR timezone de São Paulo para consistência com CalculationsService
@@ -186,7 +186,7 @@ export class EmployeeService {
     }
   }
 
-  // Calcular pontos mensais (baseado na lógica 26→25)
+  // Calcular pontos mensais (baseado na lógica 01→30/31)
   static async getMonthPoints(employeeId: number, monthDates: { start: string; end: string }): Promise<number> {
     try {
       // FORÇAR timezone de São Paulo para consistência com CalculationsService

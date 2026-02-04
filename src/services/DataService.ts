@@ -148,7 +148,7 @@ export class DataService {
 
   /**
    * Gera dados para gráficos mensais
-   * IMPORTANTE: Usa o período customizado da empresa (26→25)
+   * IMPORTANTE: Usa o período calendário da empresa (01→30/31)
    */
   static async getMonthlyChartData(range?: { start: { month: number; year: number }, end: { month: number; year: number } }): Promise<any[]> {
     // Tentar carregar dados locais da pasta 'registros monitorar'
@@ -272,7 +272,7 @@ export class DataService {
     const employees = await this.getEmployees();
     if (!employees.length) return [];
 
-    // Padronizar: sempre usar CalculationsService para o ciclo mensal atual (26→25)
+    // Padronizar: sempre usar CalculationsService para o ciclo mensal atual (01→30/31)
     const monthDates = CalculationsService.getMonthCycleDates();
     const teamData = [];
 
@@ -312,7 +312,7 @@ export class DataService {
   }
 
   /**
-   * Calcula estatísticas gerais do mês atual (ciclo 26→25).
+   * Calcula estatísticas gerais do mês atual (ciclo 01→30/31).
    * Se houver dados locais (Excel), usa eles; caso contrário, usa o fallback do banco.
    */
   static async getGeneralStats(): Promise<GeneralStats> {

@@ -1,4 +1,4 @@
-import { formatDateISO, formatDateBR, generateMonthKey, getLastDayOfMonth } from '@/lib/date-utils';
+import { formatDateISO, formatDateBR, generateMonthKey, getLastDayOfMonth, parseDate } from '@/lib/date-utils';
 import { getFixedWeekFromDate, getFixedWeekDateRangesISO } from '@/lib/week-rules';
 
 export interface WeekDates {
@@ -73,7 +73,8 @@ export class CalculationsService {
   }
 
   static getWeekFromDate(dateStr: string): number | null {
-    const date = new Date(dateStr);
+    const date = parseDate(dateStr);
+    if (!date) return null;
     return getFixedWeekFromDate(date);
   }
 

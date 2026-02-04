@@ -48,7 +48,10 @@ interface EntryRecord {
 
 export default function Registros() {
   const { toast } = useToast();
+  const now = new Date();
+  const currentMonthKey = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
   const [selectedWeek, setSelectedWeek] = useState(String(CalculationsService.getCurrentWeek() ?? '1'));
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
   const [selectedEmployee, setSelectedEmployee] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [records, setRecords] = useState<EntryRecord[]>([]);
@@ -175,19 +178,43 @@ export default function Registros() {
   // handler de importação removido
   // (removido) handler de importação do mês atual
 
+  const monthOptionsMap = new Map(
+    records.map(record => {
+      const [day, month, year] = record.date.split('/');
+      const key = `${month.padStart(2, '0')}/${year}`;
+      const label = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      return [key, label];
+    })
+  );
+  if (!monthOptionsMap.has(currentMonthKey)) {
+    const [mm, yyyy] = currentMonthKey.split('/');
+    const label = new Date(parseInt(yyyy), parseInt(mm) - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    monthOptionsMap.set(currentMonthKey, label);
+  }
+  const monthOptions = Array.from(monthOptionsMap)
+    .sort(([a], [b]) => {
+      const [ma, ya] = a.split('/').map(Number);
+      const [mb, yb] = b.split('/').map(Number);
+      if (ya !== yb) return yb - ya;
+      return mb - ma;
+    })
+    .map(([value, label]) => ({ value, label: label.charAt(0).toUpperCase() + label.slice(1) }));
+
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.refinery.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.observations.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesEmployee = selectedEmployee === "todos" || record.employee === selectedEmployee;
+    const [day, month, year] = record.date.split('/');
+    const recordMonthKey = `${month.padStart(2, '0')}/${year}`;
+    const matchesMonth = selectedMonth === "todos" || recordMonthKey === selectedMonth;
     let matchesWeek = true;
     if (selectedWeek !== "todas") {
-      const ranges = CalculationsService.getWeekDateRanges(selectedWeek);
-      const [day, month, year] = record.date.split('/');
       const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      matchesWeek = ranges.some(r => isoDate >= r.start && isoDate <= r.end);
+      const weekNumber = CalculationsService.getWeekFromDate(isoDate);
+      matchesWeek = String(weekNumber ?? '') === selectedWeek;
     }
-    return matchesSearch && matchesEmployee && matchesWeek;
+    return matchesSearch && matchesEmployee && matchesMonth && matchesWeek;
   });
 
   const exportToExcel = () => {
@@ -335,7 +362,7 @@ export default function Registros() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <SelectField
               label="Semana"
               value={selectedWeek}
@@ -347,6 +374,15 @@ export default function Registros() {
                 { value: "3", label: "Semana 3" },
                 { value: "4", label: "Semana 4" },
                 { value: "5", label: "Semana 5" }
+              ]}
+            />
+            <SelectField
+              label="Mês"
+              value={selectedMonth}
+              onChange={setSelectedMonth}
+              options={[
+                { value: "todos", label: "Todos" },
+                ...monthOptions
               ]}
             />
             <SelectField

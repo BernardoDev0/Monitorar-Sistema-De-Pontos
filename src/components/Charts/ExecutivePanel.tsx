@@ -22,7 +22,7 @@ export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: Execu
     })();
   }, []);
 
-  // Datas do ciclo mensal (26 -> 25)
+  // Datas do ciclo mensal (01 -> 30/31)
   const cycle = useMemo(() => CalculationsService.getMonthCycleDates(), []);
   const totalDays = useMemo(() => {
     const start = new Date(cycle.start);
