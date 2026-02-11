@@ -3,8 +3,10 @@ import { Employee, Entry } from './EmployeeService';
 import { CalculationsService } from './CalculationsService';
 import { formatDateISO } from '@/lib/date-utils';
 import { ExcelProcessorService } from './ExcelProcessorService';
-import { EMPLOYEE_NAMES, TEAM_MONTHLY_GOAL, POINT_VALUE } from '@/lib/constants';
+import { DASHBOARD_EXCLUDED_EMPLOYEES, EMPLOYEE_NAMES, TEAM_MONTHLY_GOAL, POINT_VALUE } from '@/lib/constants';
 import { Logger, getEmployeeColor, calculateTotalPoints } from '@/lib/shared-utils';
+
+const excludedEmployees = new Set(DASHBOARD_EXCLUDED_EMPLOYEES);
 
 export interface ChartData {
   weeklyData: any[];
@@ -277,6 +279,9 @@ export class DataService {
     const teamData = [];
 
     for (const employee of employees) {
+      if (excludedEmployees.has(employee.real_name)) {
+        continue;
+      }
       const points = await this.getEmployeePoints(
         employee.id,
         monthDates.start,
@@ -345,8 +350,7 @@ export class DataService {
     for (const employee of employees) {
       const points = await this.getEmployeePoints(employee.id, monthDates.start, localDateYYYYMMDD);
       
-      // Excluir freelancer dos totais
-      if (employee.real_name !== 'Rodrigo') {
+      if (!excludedEmployees.has(employee.real_name)) {
         totalPoints += points;
 
         if (points > bestPoints) {
@@ -354,7 +358,6 @@ export class DataService {
           bestPerformer = employee.real_name;
         }
 
-        // Para média: excluir Rodrigo (freelancer)
         totalPointsForAverage += points;
         employeeCountForAverage++;
       }
@@ -418,8 +421,8 @@ export class DataService {
     let activeEmployees = 0;
 
     for (const employee of employees) {
-      if (employee.real_name === 'Rodrigo') {
-        continue; // excluir freelancer dos totais semanais/mensais
+      if (excludedEmployees.has(employee.real_name)) {
+        continue;
       }
       let pts = 0;
       for (const r of ranges) {
@@ -432,10 +435,8 @@ export class DataService {
         bestPerformer = employee.real_name;
       }
 
-      if (employee.real_name !== 'Rodrigo') {
-        totalPointsForAverage += pts;
-        employeeCountForAverage++;
-      }
+      totalPointsForAverage += pts;
+      employeeCountForAverage++;
 
       if (pts > 0) activeEmployees++;
     }
@@ -444,9 +445,9 @@ export class DataService {
 
     const avgTeam = employeeCountForAverage > 0 ? Math.round(totalPointsForAverage / employeeCountForAverage) : 0;
 
-    // Meta SEMANAL da equipe: somatório das metas semanais (excluindo Rodrigo)
+    // Meta SEMANAL da equipe
     const totalWeeklyGoalTeam = employees
-      .filter(e => e.real_name !== 'Rodrigo')
+      .filter(e => !excludedEmployees.has(e.real_name))
       .reduce((sum, e) => sum + CalculationsService.getWeeklyGoal(e), 0);
 
     const progressPercentage = totalWeeklyGoalTeam > 0
@@ -468,7 +469,7 @@ export class DataService {
       totalGoalPoints: totalWeeklyGoalTeam,
       goalRemaining: Math.max(totalWeeklyGoalTeam - totalPoints, 0),
       activeEmployees,
-      totalEmployees: employees.filter(e => e.real_name !== 'Rodrigo').length,
+      totalEmployees: employees.filter(e => !excludedEmployees.has(e.real_name)).length,
       weekRange,
     };
   }

@@ -14,7 +14,7 @@ interface WeeklyChartProps {
   hiddenEmployees: Set<string>;
 }
 
-import { EMPLOYEE_COLORS } from "@/lib/constants";
+import { DASHBOARD_EXCLUDED_EMPLOYEES, EMPLOYEE_COLORS } from "@/lib/constants";
 
 export function WeeklyChart({ data, hiddenEmployees }: WeeklyChartProps) {
   return (
@@ -64,17 +64,19 @@ export function WeeklyChart({ data, hiddenEmployees }: WeeklyChartProps) {
           </g>
         )}
         
-        {Object.entries(EMPLOYEE_COLORS).map(([employee, color]) => (
-          !hiddenEmployees.has(employee) && (
-            <Bar 
-              key={employee} 
-              dataKey={employee} 
-              fill={color} 
-              name={employee} 
-              radius={[2, 2, 0, 0]} 
-            />
-          )
-        ))}
+        {Object.entries(EMPLOYEE_COLORS)
+          .filter(([employee]) => !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employee))
+          .map(([employee, color]) => (
+            !hiddenEmployees.has(employee) && (
+              <Bar 
+                key={employee} 
+                dataKey={employee} 
+                fill={color} 
+                name={employee} 
+                radius={[2, 2, 0, 0]} 
+              />
+            )
+          ))}
       </BarChart>
     </ResponsiveContainer>
   );

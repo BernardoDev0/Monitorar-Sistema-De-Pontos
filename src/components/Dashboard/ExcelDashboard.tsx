@@ -6,6 +6,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FolderOpen, FileSpreadsheet, Users, TrendingUp, DollarSign } from 'lucide-react';
 import { CalculationsService } from '@/services/CalculationsService';
+import { DASHBOARD_EXCLUDED_EMPLOYEES } from '@/lib/constants';
 
 interface ExcelData {
   employees: Record<string, EmployeeData>;
@@ -49,14 +50,6 @@ interface EmployeeColors {
 }
 
 const excelChartConfig = {
-  Rodrigo: {
-    label: "Rodrigo",
-    color: "rgba(168, 85, 247, 1)", // Roxo vivo
-  },
-  Maurício: {
-    label: "Maurício", 
-    color: "rgba(59, 130, 246, 1)", // Azul vivo
-  },
   Matheus: {
     label: "Matheus",
     color: "rgba(34, 197, 94, 1)", // Verde vivo
@@ -490,7 +483,9 @@ export default function ExcelDashboard() {
       return [];
     }
 
-    const employees = Object.keys(data.employees);
+    const employees = Object.keys(data.employees).filter(
+      employeeName => !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employeeName)
+    );
     console.log('👥 Funcionários encontrados:', employees);
     
     // Obter meses únicos dos dados do Excel
@@ -675,7 +670,11 @@ export default function ExcelDashboard() {
   }, []);
 
   const chartData = prepareChartData();
-  const totalPoints = statistics?.total_points || statistics?.totalPoints || 0;
+  const totalPoints = data?.employees
+    ? Object.entries(data.employees)
+        .filter(([employeeName]) => !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employeeName))
+        .reduce((sum, [, empData]) => sum + (empData.total_points || empData.totalPoints || 0), 0)
+    : (statistics?.total_points || statistics?.totalPoints || 0);
 
   return (
     <div className="space-y-6">

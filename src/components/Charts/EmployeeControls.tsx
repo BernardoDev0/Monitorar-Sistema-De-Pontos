@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Users, User } from "lucide-react";
-import { EMPLOYEE_COLORS } from "@/lib/constants";
+import { DASHBOARD_EXCLUDED_EMPLOYEES, EMPLOYEE_COLORS } from "@/lib/constants";
 
 interface EmployeeControlsProps {
   viewMode: "team" | "individual";
@@ -9,6 +9,7 @@ interface EmployeeControlsProps {
   hiddenEmployees: Set<string>;
   onToggleEmployee: (employee: string) => void;
   selectedChart: string;
+  includeExcludedEmployees?: boolean;
 }
 
 // Usando constantes centralizadas
@@ -18,11 +19,14 @@ export function EmployeeControls({
   onViewModeChange, 
   hiddenEmployees, 
   onToggleEmployee,
-  selectedChart 
+  selectedChart,
+  includeExcludedEmployees = false
 }: EmployeeControlsProps) {
   return (
     <div className="space-y-2">
-      {Object.entries(EMPLOYEE_COLORS).map(([employee, color]) => (
+      {Object.entries(EMPLOYEE_COLORS)
+        .filter(([employee]) => includeExcludedEmployees || !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employee))
+        .map(([employee, color]) => (
         <Button
           key={employee}
           variant="ghost"

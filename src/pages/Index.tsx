@@ -6,6 +6,7 @@ import { ProgressSection } from "@/components/Dashboard/ProgressSection";
 import { EmployeeService, Employee } from "@/services/EmployeeService";
 import { CalculationsService } from "@/services/CalculationsService";
 import { PageLoading, useLoading } from "@/components/ui/loading-state";
+import { DASHBOARD_EXCLUDED_EMPLOYEES } from "@/lib/constants";
 
 interface EmployeeMetrics extends Employee {
   weeklyPoints: number;
@@ -95,7 +96,7 @@ const Index = () => {
   }, [navigate, selectedWeek]);
 
   // Calcular métricas totais
-  const filteredEmployees = employees.filter(emp => (emp.real_name || emp.name) !== 'Rodrigo');
+  const filteredEmployees = employees.filter(emp => !DASHBOARD_EXCLUDED_EMPLOYEES.includes((emp.real_name || emp.name) as string));
   const totalWeeklyPoints = filteredEmployees.reduce((sum, emp) => sum + emp.weeklyPoints, 0);
   const totalMonthlyPoints = filteredEmployees.reduce((sum, emp) => sum + emp.monthlyPoints, 0);
   console.log('DEBUG - Total de Pontos Semanais Agregados:', totalWeeklyPoints);
@@ -167,7 +168,7 @@ const Index = () => {
 
       {/* Cards dos Funcionários */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {employees.map((employee, index) => (
+        {filteredEmployees.map((employee, index) => (
           <div key={employee.name}>
             <EmployeeCard
               name={employee.real_name || employee.name}

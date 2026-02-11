@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ExcelProcessorService } from '@/services/ExcelProcessorService';
 import { CalculationsService } from '@/services/CalculationsService';
 import { DataService } from '@/services/DataService';
+import { DASHBOARD_EXCLUDED_EMPLOYEES } from '@/lib/constants';
 
 interface ExecutivePanelProps {
   monthlyData: any[]; // últimos meses com pontos por pessoa
@@ -14,6 +15,7 @@ const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: ExecutivePanelProps) {
   const [employees, setEmployees] = useState<any[]>([]);
+  const excludedEmployees = useMemo(() => new Set(DASHBOARD_EXCLUDED_EMPLOYEES), []);
 
   useEffect(() => {
     (async () => {
@@ -38,8 +40,10 @@ export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: Execu
   }, [cycle, totalDays]);
   const remainingDays = Math.max(totalDays - elapsedDays, 0);
 
-  // Filtra Rodrigo e ocultos
-  const visibleTeam = useMemo(() => teamData.filter(t => t.name !== 'Rodrigo' && !hiddenEmployees.has(t.name)), [teamData, hiddenEmployees]);
+  const visibleTeam = useMemo(
+    () => teamData.filter(t => !excludedEmployees.has(t.name) && !hiddenEmployees.has(t.name)),
+    [teamData, hiddenEmployees, excludedEmployees]
+  );
 
   const totalPoints = useMemo(() => visibleTeam.reduce((s, r) => s + (r.value || 0), 0), [visibleTeam]);
   const POINT_VALUE = 3.25;
@@ -63,14 +67,14 @@ export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: Execu
     const last3 = monthlyData.slice(-3).map((m: any) => {
       return Object.keys(m)
         .filter(k => !['name','key','start','end'].includes(k))
-        .filter(k => k !== 'Rodrigo' && !hiddenEmployees.has(k))
+        .filter(k => !excludedEmployees.has(k) && !hiddenEmployees.has(k))
         .reduce((sum, k) => sum + (m[k] || 0), 0);
     });
     const last = last3[last3.length - 1] || 0;
     const prev = last3.length >= 2 ? last3[last3.length - 2] : 0;
     const changePct = prev > 0 ? Math.round(((last - prev) / prev) * 1000) / 10 : 0;
     return { last, prev, changePct };
-  }, [monthlyData, hiddenEmployees]);
+  }, [monthlyData, hiddenEmployees, excludedEmployees]);
 
   // Risco por colaborador: progresso atual vs meta mensal
   const riskList = useMemo(() => {
@@ -80,7 +84,7 @@ export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: Execu
       mapAtual.set(t.name, t.value || 0);
     }
     const list = employees
-      .filter(e => e.real_name !== 'Rodrigo' && !hiddenEmployees.has(e.real_name))
+      .filter(e => !excludedEmployees.has(e.real_name) && !hiddenEmployees.has(e.real_name))
       .map(e => {
         const monthlyGoal = CalculationsService.getMonthlyGoal(e);
         const atual = mapAtual.get(e.real_name) || 0;
@@ -91,7 +95,7 @@ export function ExecutivePanel({ monthlyData, teamData, hiddenEmployees }: Execu
       .sort((a, b) => a.progressPct - b.progressPct)
       .slice(0, 3);
     return list;
-  }, [employees, teamData, hiddenEmployees]);
+  }, [employees, teamData, hiddenEmployees, excludedEmployees]);
 
   return (
     <div className="h-full space-y-4">

@@ -45,6 +45,8 @@ export const EMPLOYEE_CHART_COLORS = {
  */
 export const EMPLOYEE_NAMES = Object.keys(EMPLOYEE_COLORS) as Array<keyof typeof EMPLOYEE_COLORS>;
 
+export const DASHBOARD_EXCLUDED_EMPLOYEES: string[] = ['Rodrigo', 'Maurício', 'Mauricio'];
+
 // ============================================================================
 // CONFIGURAÇÕES DE METAS
 // ============================================================================

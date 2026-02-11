@@ -75,7 +75,7 @@ export default function Graficos() {
         if (!monthly || monthly.length === 0) {
           return { bestPerformer: '-', bestPoints: 0, avgTeam: 0, totalRevenue: 0, totalGoal: 0, progressPercentage: 0 };
         }
-        const employees = EMPLOYEE_NAMES.filter(n => n !== 'Rodrigo');
+        const employees = EMPLOYEE_NAMES;
         const totals: Record<string, number> = {};
         for (const e of employees) totals[e] = 0;
         for (const row of monthly) {
@@ -140,6 +140,7 @@ export default function Graficos() {
             data={chartData.monthlyData} 
             hiddenEmployees={hiddenEmployees} 
             viewMode={viewMode} 
+            includeExcludedEmployees
           />
         );
       
@@ -377,6 +378,7 @@ export default function Graficos() {
                   hiddenEmployees={hiddenEmployees}
                   onToggleEmployee={toggleEmployee}
                   selectedChart={selectedChart}
+                  includeExcludedEmployees={selectedChart === "progress"}
                 />
               </div>
             </CardContent>

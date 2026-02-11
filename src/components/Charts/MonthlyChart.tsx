@@ -15,12 +15,13 @@ interface MonthlyChartProps {
   data: any[];
   hiddenEmployees: Set<string>;
   viewMode: "team" | "individual";
+  includeExcludedEmployees?: boolean;
 }
 
-import { EMPLOYEE_COLORS } from "@/lib/constants";
+import { DASHBOARD_EXCLUDED_EMPLOYEES, EMPLOYEE_COLORS } from "@/lib/constants";
 import { ReferenceLine } from "recharts";
 
-export function MonthlyChart({ data, hiddenEmployees, viewMode }: MonthlyChartProps) {
+export function MonthlyChart({ data, hiddenEmployees, viewMode, includeExcludedEmployees = false }: MonthlyChartProps) {
   if (viewMode === "individual") {
     // Modo individual: gráfico de barras por funcionário
     return (
@@ -59,17 +60,19 @@ export function MonthlyChart({ data, hiddenEmployees, viewMode }: MonthlyChartPr
             wrapperStyle={{ outline: 'none' }}
           />
           
-          {Object.entries(EMPLOYEE_COLORS).map(([employee, color]) => (
-            !hiddenEmployees.has(employee) && (
-              <Bar 
-                key={employee} 
-                dataKey={employee} 
-                fill={color} 
-                name={employee} 
-                radius={[2, 2, 0, 0]} 
-              />
-            )
-          ))}
+          {Object.entries(EMPLOYEE_COLORS)
+            .filter(([employee]) => includeExcludedEmployees || !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employee))
+            .map(([employee, color]) => (
+              !hiddenEmployees.has(employee) && (
+                <Bar 
+                  key={employee} 
+                  dataKey={employee} 
+                  fill={color} 
+                  name={employee} 
+                  radius={[2, 2, 0, 0]} 
+                />
+              )
+            ))}
           
           {/* Linha da meta mensal individual */}
           <ReferenceLine 
@@ -85,7 +88,7 @@ export function MonthlyChart({ data, hiddenEmployees, viewMode }: MonthlyChartPr
     // Modo equipe: gráfico de linha com total
     const teamProgressData = data.map(month => {
       const totalPoints = Object.keys(EMPLOYEE_COLORS).reduce((sum, employee) => {
-        if (!hiddenEmployees.has(employee)) {
+        if (!hiddenEmployees.has(employee) && (includeExcludedEmployees || !DASHBOARD_EXCLUDED_EMPLOYEES.includes(employee))) {
           return sum + (month[employee] || 0);
         }
         return sum;
